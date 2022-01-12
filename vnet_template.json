@@ -1,0 +1,214 @@
+{
+"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+"contentVersion": "1.0.0.0",
+"parameters": {
+    "location": {
+        "type": "string"
+    },
+    "resourceGroup": {
+        "type": "string"
+    },
+    "Vnet1": {
+        "type": "string"
+    },
+    "Vnet2": {
+        "type": "string"
+    },
+    "Vnet3": {
+        "type": "string"
+    },
+    "bastionHostName": {
+        "type": "string"
+    },
+    "publicIpAddressName": {
+        "type": "string"
+    },
+    "tags":{
+        "type": "string"
+    },
+    "appsubnet1":{
+    "type": "string"
+    },
+    "appsubnet2":{
+    "type": "string"
+    },
+    "mgmtsubnet1":{
+        "type": "string"
+    },
+    "mgmtsubnet2":{
+        "type": "string"
+    },
+    "websubnet1":{
+    "type": "string"
+    },
+    "websubnet2":{
+    "type": "string"
+    }
+},
+"resources": [
+{
+    //App Vnet
+    "name": "[parameters('Vnet1')]",
+    "type": "Microsoft.Network/virtualNetworks",
+    "apiVersion": "2020-11-01",
+    "location": "[resourceGroup().location]",
+    "tags": {
+        "IMG-TX-APP-VNET": "[parameters('tags')]"
+    },
+    "properties": {
+        "addressSpace": {
+            "addressPrefixes": [
+                "10.240.1.0/24"
+            ]
+        },
+        "subnets": [
+            {
+                        "name": "[parameters('appsubnet1')]",
+                        "properties": {
+                            "addressPrefix": "10.240.1.0/26",
+                            "serviceEndpoints": [
+                                {
+                                    "service": "Microsoft.Sql",
+                                    "locations": [
+                                        "[parameters('location')]"
+                                    ]
+                                }
+                            ],
+                            "delegations": [],
+                            "privateEndpointNetworkPolicies": "Enabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled"
+                        }
+                    },
+                    {
+                        "name": "[parameters('appsubnet2')]",
+                        "properties": {
+                            "addressPrefix": "10.240.1.64/28",
+                            "serviceEndpoints": [],
+                            "delegations": [],
+                            "privateEndpointNetworkPolicies": "Enabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled"
+                        }
+                    }
+                ],
+                "enableDdosProtection": false
+            }    
+    },
+    //MGMT Vnet
+    {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2020-11-01",
+            "name": "[parameters('Vnet2')]",
+            "location": "[parameters('location')]",
+            "tags": {
+                "IMG-TX-MGMT VNET": "[parameters('tags')]"
+            },
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.242.1.0/24"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[parameters('mgmtsubnet1')]",
+                        "properties": {
+                            "addressPrefix": "10.242.1.0/26",
+                            "delegations": [],
+                            "privateEndpointNetworkPolicies": "Enabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled"
+                        }
+                    },
+                    {
+                        "name": "[parameters('mgmtsubnet2')]",
+                        "properties": {
+                            "addressPrefix": "10.242.1.64/26",
+                            "delegations": [],
+                            "privateEndpointNetworkPolicies": "Enabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled"
+                        }
+                    }
+                ],
+               "enableDdosProtection": false
+            }
+        },
+        //Web Vnet
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2020-11-01",
+            "name": "[parameters('Vnet3')]",
+            "location": "[parameters('location')]",
+            "tags": {
+                "IMG-TX-WEB VNET": "[parameters('tags')]"
+            },
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.241.1.0/24"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[parameters('websubnet1')]",
+                        "properties": {
+                            "addressPrefix": "10.241.1.0/26",
+                            "delegations": [],
+                            "privateEndpointNetworkPolicies": "Enabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled"
+                        }
+                    },
+                    {
+                        "name": "[parameters('websubnet2')]",
+                        "properties": {
+                            "addressPrefix": "10.241.1.64/28",
+                            "serviceEndpoints": [],
+                            "delegations": [],
+                            "privateEndpointNetworkPolicies": "Enabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled"
+                        }
+                    }
+                ],
+                "enableDdosProtection": false
+            }
+        },
+        //public ip
+    {
+        "apiVersion": "2019-02-01",
+        "type": "Microsoft.Network/publicIpAddresses",
+        "name": "[parameters('publicIpAddressName')]",
+        "location": "[parameters('location')]",
+        "sku": {
+            "name": "Standard"
+        },
+        "properties": {
+            "publicIPAllocationMethod": "Static"
+        },
+        "tags": {}
+    },
+    //Bastion Host
+    {
+        "apiVersion": "2018-10-01",
+        "type": "Microsoft.Network/bastionHosts",
+        "name": "[parameters('bastionHostName')]",
+        "location": "[parameters('location')]",
+        "dependsOn": [
+            "[resourceId(parameters('resourceGroup'), 'Microsoft.Network/publicIpAddresses', parameters('publicIpAddressName'))]"
+        ],
+        "properties": {
+            "ipConfigurations": [
+                {
+                    "name": "IpConf",
+                    "properties": {
+                        "subnet": {
+                            "id": "[resourceId(parameters('resourceGroup'), 'Microsoft.Network/virtualNetworks/subnets', parameters('Vnet2'),parameters('mgmtsubnet2'))]"
+                        },
+                        "publicIPAddress": {
+                            "id": "[resourceId(parameters('resourceGroup'), 'Microsoft.Network/publicIpAddresses', parameters('publicIpAddressName'))]"
+                        }
+                    }
+                }
+            ]
+        },
+        "tags": {}
+    }
+]
+}

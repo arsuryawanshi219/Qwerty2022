@@ -1,0 +1,48 @@
+{
+"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+"contentVersion": "1.0.0.0",
+"parameters": {
+    "resourceGroup": {
+        "value": "IMGTX-BLD"
+    },
+    "bastionHostName": {
+        "value": "IMG-TX-BLD-MgmtBastion-Subnet"
+    },
+    "publicIpAddressName": {
+        "value": "IMG-TX-BLD-Bastion-PIP"
+    },
+    "location": {
+        "value": "southcentralus"
+    },
+    "Vnet1": {
+        "value": "IMG-TX-BLD-App-Vnet"
+    },
+    "Vnet2": {
+        "value": "IMG-TX-BLD-Mgmt-Vnet"
+    },
+    "Vnet3": {
+        "value": "IMG-TX-BLD-Web-Vnet"
+    },
+    "tags":{
+        "value": "BLD"  
+    },
+    "appsubnet1":{
+        "value": "IMG-TX-BLD-App-Subnet"
+    },
+    "appsubnet2":{
+        "value": "IMG-TX-BLD-AppGW-Subnet"
+    },
+    "mgmtsubnet1":{
+        "value": "IMG-TX-BLD-Mgmt-Subnet"
+    },
+    "mgmtsubnet2":{
+        "value": "AzureBastionSubnet"
+    },
+    "websubnet1":{
+        "value": "IMG-TX-BLD-Web-Subnet"
+    },
+    "websubnet2":{
+        "value": "IMG-TX-BLD-WebGW-Subnet"
+    }
+}
+}
